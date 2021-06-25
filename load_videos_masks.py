@@ -143,9 +143,42 @@ def run(data):
 #             print('X:', x, 'Y:', y, 'SIZE:', max_size)
 #             print('width:', frame.shape[1], 'height:', frame.shape[0])
 #             print('new X:', new_x, 'new_max_size:', new_max_size)
+
+            result_mask = np.zeros((frame.shape[0] + 512, frame.shape[1] + 512))
+            result_mask[256:-256, 256:-256] = 1
+        
+            crop_mask = np.zeros((frame.shape[0] + 512, frame.shape[1] + 512))
+            crop_mask[y:y+new_max_size, new_x:new_x+new_max_size] = 1
             
-            process_video(input_video_name, output_video_name, start_ffmpeg, length_ffmpeg, new_max_size, new_max_size, new_x, y)
-    except:
+            intersection_mask = result_mask * crop_mask
+            intersection_size = intersection_mask.sum()
+            
+            print(output_video_name, intersection_size / crop_mask.sum())
+        
+        
+
+#             wholesize = new_max_size * new_max_size
+#             cropsize_w = new_max_size
+#             if new_x < 256:
+#                 cropsize_w = cropsize_w - (256 - new_x)
+#             if new_x + new_max_size > (frame.shape[1] - 256):
+#                 cropsize_w = cropsize_w - ((new_x + new_max_size) - (frame.shape[1] - 256))
+#             cropsize_h = new_max_size
+#             if y < 256:
+#                 cropsize_h = cropsize_h - (256 - y)
+#             if y + new_max_size > (frame.shape[0] - 256):
+#                 cropsize_h = cropsize_h - ((y + new_max_size) - (frame.shape[0] - 256))
+                
+#             cropsize = cropsize_w * cropsize_h
+#             print(new_x, y, cropsize_w, cropsize_h, new_max_size)
+#             gray_part_size = wholesize - cropsize
+            
+#             print(gray_part_size / wholesize)
+            
+            
+#            process_video(input_video_name, output_video_name, start_ffmpeg, length_ffmpeg, new_max_size, new_max_size, new_x, y)
+    except Exception as e:
+        print(e)
         print('FAILED', input_video_name)
         
 #    print('FINISHED', input_video_name)
@@ -176,5 +209,5 @@ if __name__ == "__main__":
     video_ids = set(df['video_id'])
     pool = Pool(processes=args.workers)
     args_list = cycle([args])
-    for chunks_data in tqdm(pool.imap_unordered(run, zip(video_ids, args_list))):
+    for chunks_data in pool.imap_unordered(run, zip(video_ids, args_list)):
         None  
